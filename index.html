@@ -170,7 +170,7 @@
   <script>
     let basket = [];
     let currentRing = null;
-    let currentLanguage = 'ar';
+    let currentLanguage = 'en';
 
     function toggleLanguage() {
       const newLanguage = currentLanguage === 'en' ? 'ar' : 'en';
@@ -410,6 +410,7 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       document.querySelector('.color-option[data-color="Black"]').classList.add('selected');
+      setLanguage('ar');
     });
   </script>
 </body>
