@@ -107,7 +107,7 @@
 
     <div class="mb-3">
       <label for="circumference" class="form-label" data-en="Enter Finger Circumference (cm):" data-ar="أدخل محيط الإصبع (سم):">Enter Finger Circumference (cm):</label>
-      <input type="number" class="form-control" id="circumference" placeholder="e.g. 6.2" step="0.01" data-ar-placeholder="مثال: 6.2">
+      <input type="number" class="form-control" id="circumference" placeholder="e.g. 6.2" step="0.1" data-ar-placeholder="مثال: 6.2">
     </div>
 
     <div class="mb-3">
@@ -134,6 +134,11 @@
     </div>
 
     <div id="orderForm">
+      <div class="mb-3">
+        <label for="userName" class="form-label" data-en="Your Name:" data-ar="الإسم:">Your Name:</label>
+        <input type="text" class="form-control" id="userName" placeholder="e.g., First and Last Name" data-ar-placeholder="مثال: الاسم الأول والعائلة">
+        <div class="text-danger small" id="errorName"></div>
+      </div>
       <div class="mb-3">
         <label for="userPhone" class="form-label" data-en="Your Phone Number:" data-ar="رقم الهاتف:">Your Phone Number:</label>
         <input type="text" class="form-control" id="userPhone" placeholder="e.g., 91234567" data-ar-placeholder="مثال: 91234567">
@@ -198,6 +203,7 @@
         } else {
           // Restore English placeholders
           if (el.id === 'circumference') el.setAttribute('placeholder', 'e.g. 6.2');
+          if (el.id === 'userName') el.setAttribute('placeholder', 'e.g., First and Last Name');
           if (el.id === 'userPhone') el.setAttribute('placeholder', 'e.g., 91234567');
           if (el.id === 'userCity') el.setAttribute('placeholder', 'e.g., Muscat / Bawshar');
         }
@@ -327,21 +333,27 @@
     }
 
     function showConfirmModal() {
+      const name = document.getElementById('userName').value.trim();
       const phone = document.getElementById('userPhone').value.trim();
       const city = document.getElementById('userCity').value.trim();
+      const errorName = document.getElementById('errorName');
       const errorPhone = document.getElementById('errorPhone');
       const errorCity = document.getElementById('errorCity');
 
+      errorName.textContent = '';
       errorPhone.textContent = '';
       errorCity.textContent = '';
 
+      if (!name) {
+        errorName.textContent = currentLanguage === 'en' ? 'Name is required.' : 'الاسم مطلوب.';
+      }
       if (!phone) {
         errorPhone.textContent = currentLanguage === 'en' ? 'Phone is required.' : 'رقم الهاتف مطلوب.';
       }
       if (!city) {
         errorCity.textContent = currentLanguage === 'en' ? 'Address is required.' : 'العنوان مطلوب.';
       }
-      if (!phone || !city) return;
+      if (!name || !phone || !city) return;
 
       if (basket.length === 0) {
         alert(currentLanguage === 'en' 
@@ -358,14 +370,14 @@
           summary += `<li>Ring ${index + 1}: Size ${item.size}, Color: ${item.color}, Price: 15 OMR</li>`;
         });
         summary += `</ul>`;
-        summary += `<strong>Phone:</strong> ${phone}<br><strong>Address:</strong> ${city}<br><strong>Total:</strong> ${(basket.length * 15).toFixed(2)} OMR`;
+        summary += `<strong>Name:</strong> ${name}<br><strong>Phone:</strong> ${phone}<br><strong>Address:</strong> ${city}<br><strong>Total:</strong> ${(basket.length * 15).toFixed(2)} OMR`;
       } else {
         summary = `<ul>`;
         basket.forEach((item, index) => {
           summary += `<li>الخاتم ${index + 1}: المقاس ${item.size}، اللون: ${item.colorAr}، السعر: 15 ر.ع</li>`;
         });
         summary += `</ul>`;
-        summary += `<strong>الهاتف:</strong> ${phone}<br><strong>العنوان:</strong> ${city}<br><strong>المجموع:</strong> ${(basket.length * 15).toFixed(2)} ر.ع`;
+        summary += `<strong>الاسم:</strong> ${name}<br><strong>الهاتف:</strong> ${phone}<br><strong>العنوان:</strong> ${city}<br><strong>المجموع:</strong> ${(basket.length * 15).toFixed(2)} ر.ع`;
       }
 
       document.getElementById('orderSummary').innerHTML = summary;
@@ -373,6 +385,7 @@
     }
 
     function submitOrder() {
+      const name = document.getElementById('userName').value.trim();
       const phone = document.getElementById('userPhone').value.trim();
       const city = document.getElementById('userCity').value.trim();
       let message;
@@ -382,13 +395,13 @@
         basket.forEach((item, index) => {
           message += `${index + 1}. Size: ${item.size}, Color: ${item.color}, Price: 15 OMR\n`;
         });
-        message += `\nPhone: ${phone}\nAddress: ${city}\n\nTotal Price: ${(basket.length * 15).toFixed(2)} OMR`;
+        message += `\nName: ${name}\nPhone: ${phone}\nAddress: ${city}\n\nTotal Price: ${(basket.length * 15).toFixed(2)} OMR`;
       } else {
         message = `مرحباً، أود طلب خاتم R12:\n\n`;
         basket.forEach((item, index) => {
           message += `${index + 1}. المقاس: ${item.size}، اللون: ${item.colorAr}، السعر: 15 ر.ع\n`;
         });
-        message += `\nالهاتف: ${phone}\nالعنوان: ${city}\n\nالسعر الإجمالي: ${(basket.length * 15).toFixed(2)} ر.ع`;
+        message += `\nالاسم: ${name}\nالهاتف: ${phone}\nالعنوان: ${city}\n\nالسعر الإجمالي: ${(basket.length * 15).toFixed(2)} ر.ع`;
       }
       
       const url = `https://api.whatsapp.com/send?phone=96896788650&text=${encodeURIComponent(message)}`;
