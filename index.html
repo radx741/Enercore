@@ -1,83 +1,421 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
+
 <head>
   <meta charset="UTF-8" />
+  <script>
+    // Ensure Arabic is default and applied before render
+    const userLang = localStorage.getItem('language');
+    if (!userLang) {
+      localStorage.setItem('language', 'ar');
+      document.documentElement.lang = 'ar';
+      document.documentElement.dir = 'rtl';
+    } else if (userLang === 'ar') {
+      document.documentElement.lang = 'ar';
+      document.documentElement.dir = 'rtl';
+    } else {
+      document.documentElement.lang = 'en';
+      document.documentElement.dir = 'ltr';
+    }
+  </script>
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>EnerCore | Mesaure & Order</title>
+  <title>EnerCore | Measure & Order</title>
+  <meta name="description" content="Calculate your perfect ring size and order EnerCore rings online. Available in multiple colors with easy measurement instructions.">
   <link rel="icon" href="Logo.png" type="image/png">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.19/css/intlTelInput.css" />
   <style>
+    :root {
+      --primary-color: #333;
+      --secondary-color: #666;
+      --accent-color: #007bff;
+      --success-color: #198754;
+      --danger-color: #dc3545;
+      --background-light: #fff;
+      --background-gray: #f9f9f9;
+      --border-color: #dee2e6;
+    }
+
     body {
-      background-color: #fff;
-      color: #000;
-      padding: 2rem;
+      background-color: var(--background-light);
+      color: var(--primary-color);
+      padding: 1rem;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      text-align: center;
+      padding: 2rem 0;
+      margin-bottom: 2rem;
+      background: linear-gradient(135deg, var(--background-light) 0%, var(--background-gray) 100%);
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+
+    .header img.logo {
+      max-width: 150px;
+      height: auto;
+      margin-bottom: 1rem;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin-bottom: 0.5rem;
+    }
+
+    .header p {
+      font-size: 1.1rem;
+      color: var(--secondary-color);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.9);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    .loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 5px solid var(--border-color);
+      border-top: 5px solid var(--accent-color);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .btn {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn .btn-ripple {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.5);
+      transform: scale(0);
+      animation: ripple 0.6s linear;
+      pointer-events: none;
+    }
+
+    @keyframes ripple {
+      to {
+        transform: scale(4);
+        opacity: 0;
+      }
+    }
+
+    .section {
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeInUp 0.6s ease forwards;
+    }
+
+    @keyframes fadeInUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (min-width: 768px) {
+      body {
+        padding: 2rem;
+      }
     }
     .container {
-      max-width: 600px;
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0;
+      background-color: transparent;
+      box-shadow: none;
+      margin-top: 4rem;
     }
-    .ring-image {
-      display: block;
-      margin: 1rem auto;
-      max-width: 200px;
+    .section {
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      border-radius: 12px;
+      transition: all 0.3s ease;
+    }
+    @media (min-width: 768px) {
+      .section {
+        padding: 2rem;
+        margin-bottom: 2rem;
+      }
+    }
+    .calculator-section {
+      background-color: var(--background-light);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      position: relative;
+    }
+    .order-section {
+      background-color: var(--background-gray);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .steps-container {
+      position: relative;
+      padding-left: 2rem;
+      margin-bottom: 2rem;
+    }
+    .step-number {
+      position: absolute;
+      left: -2rem;
+      width: 28px;
+      height: 28px;
+      background-color: var(--accent-color);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 0.9rem;
     }
     .color-selector {
       display: flex;
-      gap: 10px;
-      margin-top: 10px;
+      gap: 8px;
+      margin: 0.75rem 0;
+      justify-content: center;
+      align-items: center;
     }
     .color-option {
-      width: 30px;
-      height: 30px;
+      width: 24px;
+      height: 24px;
       border-radius: 50%;
-      border: 2px solid #000;
+      border: 1.5px solid var(--border-color);
       cursor: pointer;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+    .color-option:hover {
+      transform: scale(1.1);
+      border-color: var(--accent-color);
     }
     .color-option.selected {
-      box-shadow: 0 0 0 3px #000;
+      transform: scale(0.95);
+      border: 2px solid var(--accent-color);
+      box-shadow: 0 0 0 2px var(--accent-color);
+    }
+    .ring-preview-container {
+      position: relative;
+      margin: 2rem 0;
+      padding: 2rem;
+      background: transparent;
+      border-radius: 12px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+    .ring-image {
+      max-width: 220px;
+      width: 100%;
+      height: auto;
+      filter: drop-shadow(0 10px 20px rgba(0,0,0,0.05));
+      transition: all 0.5s ease;
+      mix-blend-mode: darken;
+      opacity: 0.98;
+      transform-origin: center center;
+      -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 5%, black 95%, transparent 100%);
+      mask-image: linear-gradient(to bottom, transparent 0%, black 5%, black 95%, transparent 100%);
+    }
+    .ring-image:hover {
+      transform: scale(1.02) rotate(2deg);
+      opacity: 1;
+    }
+    /* Add specific blend modes for different colored rings */
+    .ring-image[src*="black"] {
+      mix-blend-mode: darken;
+    }
+    .ring-image[src*="silver"] {
+      mix-blend-mode: multiply;
+      filter: drop-shadow(0 10px 20px rgba(0,0,0,0.05));
+    }
+    .ring-image[src*="gold"] {
+      mix-blend-mode: multiply;
+      filter: drop-shadow(0 10px 20px rgba(0,0,0,0.05));
+    }
+    .size-result {
+      background: var(--background-light);
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      margin-top: 1.5rem;
+      text-align: center;
+      transform: scale(0);
+      transition: transform 0.3s ease;
+    }
+    .size-result.show {
+      transform: scale(1);
+    }
+    .size-result h3 {
+      color: var(--accent-color);
+      margin-bottom: 1rem;
+    }
+    .size-details {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    .size-detail-item {
+      padding: 0.8rem;
+      background: var(--background-gray);
+      border-radius: 8px;
+      text-align: center;
+    }
+    .size-detail-item strong {
+      display: block;
+      color: var(--primary-color);
+      margin-bottom: 0.3rem;
     }
     .result {
-      margin-top: 1rem;
+      margin: 1rem 0;
       padding: 1rem;
       background-color: #f0f0f0;
       border-left: 5px solid green;
+      border-radius: 8px;
+      font-size: 1.1rem;
     }
     .btn-whatsapp {
       background-color: #25D366;
       color: white;
       border: none;
-      padding: 10px 20px;
-      font-size: 16px;
-      border-radius: 5px;
-      margin-top: 15px;
+      padding: 12px 24px;
+      font-size: 1.1rem;
+      border-radius: 8px;
+      margin-top: 1rem;
       display: inline-block;
       text-decoration: none;
+      transition: all 0.3s ease;
+      font-weight: 600;
+    }
+    .btn-whatsapp:hover {
+      background-color: #128C7E;
+      transform: translateY(-2px);
+    }
+    .language-toggle {      text-align: center;      margin-bottom: 20px;    }
+    .language-btn {      padding: 8px 20px;      font-size: 16px;      font-weight: bold;      border: 2px solid #333;      background-color: #f8f9fa;      color: #333;      cursor: pointer;      border-radius: 4px;      transition: all 0.3s;    }
+    .language-btn:hover {      background-color: #e9ecef;    }
+    .language-btn.active {      background-color: #333;      color: white;    }
+    .form-control {
+      padding: 12px;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: 2px solid #dee2e6;
+      transition: border-color 0.3s ease;
+    }
+    .form-control:focus {
+      border-color: #333;
+      box-shadow: 0 0 0 0.2rem rgba(0,0,0,0.1);
+    }
+    .form-label {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      font-size: 1rem;
+    }
+    .basket-item {
+      padding: 1rem;
+      margin-bottom: 1rem;
+      background-color: #fff;
+      border-radius: 8px;
+      border-left: 4px solid #007bff;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      transition: all 0.3s ease;
+    }
+    .basket-item:hover {
+      transform: translateX(5px);
+    }
+    .btn-remove {
+      color: #dc3545;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 0.9rem;
+      padding: 5px 10px;
+      border-radius: 4px;
+      transition: all 0.3s ease;
+    }
+    .btn-remove:hover {
+      background-color: #dc3545;
+      color: white;
+    }
+    #basketPreview {
+      max-height: 400px;
+      overflow-y: auto;
+      padding: 1rem;
+      border: 2px solid #dee2e6;
+      border-radius: 8px;
+      margin: 1rem 0;
+      scrollbar-width: thin;
+      scrollbar-color: #888 #f1f1f1;
+    }
+    #basketPreview::-webkit-scrollbar {
+      width: 8px;
+    }
+    #basketPreview::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+    #basketPreview::-webkit-scrollbar-thumb {
+      background: #888;
+      border-radius: 4px;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 2px solid #dee2e6;
+      font-size: 0.9rem;
+      color: #6c757d;
+    }
+    .text-danger {
+      color: #dc3545;
+      font-size: 0.9rem;
+      margin-top: 0.3rem;
     }
     .modal-content {
-      background-color: #fff;
-      padding: 20px;
-      border-radius: 8px;
+      border-radius: 12px;
+      border: none;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
     }
-    .language-toggle {
-      text-align: center;
-      margin-bottom: 20px;
+    .modal-body {
+      padding: 1.5rem;
     }
-    .language-btn {
-      padding: 8px 20px;
-      font-size: 16px;
-      font-weight: bold;
-      border: 2px solid #333;
-      background-color: #f8f9fa;
-      color: #333;
-      cursor: pointer;
-      border-radius: 4px;
-      transition: all 0.3s;
-    }
-    .language-btn:hover {
-      background-color: #e9ecef;
-    }
-    .language-btn.active {
-      background-color: #333;
-      color: white;
+    @media (max-width: 576px) {
+      h1 {
+        font-size: 1.8rem;
+      }
+      h2 {
+        font-size: 1.3rem;
+      }
+      .btn {
+        padding: 10px 20px;
+        font-size: 1rem;
+      }
+      .form-control {
+        font-size: 16px; /* Prevents zoom on mobile */
+      }
+      .basket-item {
+        padding: 0.8rem;
+      }
     }
     /* RTL support for Arabic */
     body.rtl {
@@ -88,71 +426,381 @@
       border-left: none;
       border-right: 5px solid green;
     }
+    body.rtl .basket-item {
+      border-left: none;
+      border-right: 4px solid #007bff;
+    }
+    body.rtl .basket-item:hover {
+      transform: translateX(-5px);
+    }
+    /* Custom style for intl-tel-input */
+    .iti {
+      width: 100%;
+      margin-bottom: 0.5rem;
+    }
+    .iti__flag-container:hover .iti__selected-flag {
+      background-color: rgba(0,0,0,0.05);
+    }
+    .iti__selected-flag {
+      border-radius: 8px 0 0 8px;
+    }
+    .input-group {
+      position: relative;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: stretch;
+      width: 100%;
+    }
+    .input-group-text {
+      padding: 12px 16px;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #495057;
+      text-align: center;
+      background-color: #f8f9fa;
+      border: 2px solid #dee2e6;
+      border-radius: 0 8px 8px 0;
+      transition: all 0.3s ease;
+    }
+    .input-group .form-control {
+      border-right: none;
+      border-radius: 8px 0 0 8px;
+    }
+    .input-group .form-control:focus + .input-group-text {
+      border-color: #333;
+      background-color: #fff;
+    }
+    .circumference-wrapper {
+      position: relative;
+      margin-bottom: 2rem;
+    }
     
+    .valid-feedback, .invalid-feedback {
+      display: none;
+      width: 100%;
+      margin-top: 0.5rem;
+      font-size: 0.875rem;
+    }
+    .valid-feedback {
+      color: #198754;
+    }
+    .invalid-feedback {
+      color: #dc3545;
+    }
+    .form-control.is-valid {
+      border-color: var(--border-color);
+      padding-right: calc(1.5em + 0.75rem);
+      background-image: none;
+    }
     
+    .form-control.is-valid:focus {
+      border-color: var(--border-color);
+      box-shadow: 0 0 0 0.2rem rgba(0,0,0,0.1);
+    }
+
+    .valid-feedback {
+      display: none !important;
+    }
+
+    /* Only show green validation for values between 5.5 and 7.0 */
+    .form-control[value]:not([value=""]):not([value="0"]) {
+      border-color: var(--border-color);
+    }
+    
+    .form-control[value]:not([value=""]):not([value="0"]):focus {
+      border-color: var(--border-color);
+      box-shadow: 0 0 0 0.2rem rgba(0,0,0,0.1);
+    }
+
+    /* Keep the red validation styles for invalid input */
+    .form-control.is-invalid {
+      border-color: var(--danger-color);
+      padding-right: calc(1.5em + 0.75rem);
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right calc(0.375em + 0.1875rem) center;
+      background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+    }
+    .basket-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid var(--border-color);
+    }
+    .basket-header h2 {
+      margin: 0;
+      font-size: 1.5rem;
+      color: var(--primary-color);
+    }
+    .basket-count {
+      background: var(--accent-color);
+      color: white;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    #basketPreview {
+      max-height: 400px;
+      overflow-y: auto;
+      padding: 1rem;
+      border: 2px solid var(--border-color);
+      border-radius: 12px;
+      margin: 1rem 0;
+      background: var(--background-light);
+      scrollbar-width: thin;
+      scrollbar-color: #888 #f1f1f1;
+    }
+    .basket-empty {
+      text-align: center;
+      padding: 2rem;
+      color: var(--secondary-color);
+    }
+    .basket-empty i {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+    .basket-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 1rem;
+      align-items: center;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      background: var(--background-gray);
+      border-radius: 8px;
+      border-left: 4px solid var(--accent-color);
+      transition: all 0.3s ease;
+      animation: slideIn 0.3s ease;
+    }
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    .basket-item:hover {
+      transform: translateX(5px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .basket-item-details {
+      display: grid;
+      gap: 0.5rem;
+    }
+    .basket-item-size {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--primary-color);
+    }
+    .basket-item-meta {
+      font-size: 0.9rem;
+      color: var(--secondary-color);
+    }
+    .basket-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .btn-remove {
+      color: var(--danger-color);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0.5rem;
+      border-radius: 4px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .btn-remove:hover {
+      background-color: var(--danger-color);
+      color: white;
+    }
+    .order-form {
+      margin-top: 2rem;
+      padding-top: 2rem;
+      border-top: 2px solid var(--border-color);
+    }
+    .order-form-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .order-form-header h2 {
+      font-size: 1.5rem;
+      color: var(--primary-color);
+      margin-bottom: 0.5rem;
+    }
+    .order-form-header p {
+      color: var(--secondary-color);
+      margin: 0;
+    }
+    .ring-preview-container.loading::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: transparent;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 12px;
+      backdrop-filter: blur(5px);
+    }
+    .ring-preview-container.loading::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 30px;
+      height: 30px;
+      border: 3px solid var(--border-color);
+      border-top-color: var(--accent-color);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      z-index: 1;
+    }
+    .result.error {
+      background-color: #fff3f3;
+      border-left: 5px solid var(--danger-color);
+      color: var(--danger-color);
+      padding: 1rem;
+      border-radius: 8px;
+      margin: 1rem 0;
+      font-size: 1rem;
+    }
+
+    body.rtl .result.error {
+      border-left: none;
+      border-right: 5px solid var(--danger-color);
+    }
   </style>
 </head>
 <body>
-  <div class="language-toggle">
-    <button class="language-btn" id="languageToggle" onclick="toggleLanguage()">العربية</button>
+  <div class="loading-overlay">
+    <div class="loading-spinner"></div>
   </div>
 
+    <div class="language-toggle">    <button class="language-btn" id="languageToggle" onclick="toggleLanguage()">العربية</button>  </div>
+
   <div class="container">
-    <h1 class="text-center mb-4" data-en="Ring Size Calculator" data-ar="حاسب مقاس الخاتم">Ring Size Calculator</h1>
-    <h2 class="h5" data-en="Step-by-Step Instructions:" data-ar="تعليمات خطوة بخطوة:">Step-by-Step Instructions:</h2>
-    <ol>
-      <li data-en="Cut a thin strip of paper or use string." data-ar="قص شريطاً رفيعاً من الورق أو استخدم خيطاً.">Cut a thin strip of paper or use string.</li>
-      <li data-en="Wrap it around the base of your finger snugly (not too tight)." data-ar="لفه حول قاعدة إصبعك بإحكام (ليس بشكل مشدود جداً).">Wrap it around the base of your finger snugly (not too tight).</li>
-      <li data-en="Mark the point where the end meets the rest of the strip." data-ar="ضع علامة على النقطة حيث تلتقي النهاية مع باقي الشريط.">Mark the point where the end meets the rest of the strip.</li>
-      <li data-en="Lay it flat and measure the length in centimeters." data-ar="ضعه بشكل مسطح وقم بقياس الطول بالـ سنتيمتر.">Lay it flat and measure the length in <strong>centimeters</strong>.</li>
-      <li data-en="Enter the value below to calculate your ring size." data-ar="أدخل القيمة أدناه لحساب مقاس خاتمك.">Enter the value below to calculate your ring size.</li>
-    </ol>
+    <div class="section calculator-section">
+      <div class="steps-container">
+        <div class="step-number">1</div>
+        <h2 class="h5" data-en="Measurement Instructions:" data-ar="تعليمات القياس:">Measurement Instructions:</h2>
+        <ol>
+          <li data-en="Cut a thin strip of paper or use string." data-ar="قص شريطاً رفيعاً من الورق أو استخدم خيطاً.">Cut a thin strip of paper or use string.</li>
+          <li data-en="Wrap it around the base of your finger snugly (not too tight)." data-ar="لفه حول قاعدة إصبعك بإحكام (ليس بشكل مشدود جداً).">Wrap it around the base of your finger snugly (not too tight).</li>
+          <li data-en="Mark the point where the end meets the rest of the strip." data-ar="ضع علامة على النقطة حيث تلتقي النهاية مع باقي الشريط.">Mark the point where the end meets the rest of the strip.</li>
+          <li data-en="Lay it flat and measure the length in centimeters." data-ar="ضعه بشكل مسطح وقم بقياس الطول بالـ سنتيمتر.">Lay it flat and measure the length in <strong>centimeters</strong>.</li>
+        </ol>
+      </div>
 
-    <div class="mb-3">
-      <label for="circumference" class="form-label" data-en="Enter Finger Circumference (cm):" data-ar="أدخل محيط الإصبع (سم):">Enter Finger Circumference (cm):</label>
-      <input type="number" class="form-control" id="circumference" placeholder="e.g. 6.2" step="0.1" data-ar-placeholder="مثال: 6.2">
+      <div class="steps-container">
+        <div class="step-number">2</div>
+        <div class="circumference-wrapper">
+          <label for="circumference" class="form-label" data-en="Enter Finger Circumference:" data-ar="أدخل محيط الإصبع:">Enter Finger Circumference:</label>
+          <div class="input-group">
+            <input 
+              type="number" 
+              class="form-control" 
+              id="circumference" 
+              placeholder="e.g. 6.2" 
+              step="0.1" 
+              min="4"
+              max="12"
+              data-ar-placeholder="مثال: 6.2"
+              oninput="validateCircumference(this)"
+            >
+            <span class="input-group-text">cm</span>
+          </div>
+          <div class="valid-feedback" data-en="Valid circumference measurement" data-ar="قياس محيط صحيح"></div>
+          <div class="invalid-feedback" data-en="Please enter a valid circumference between 4 and 12 cm" data-ar="الرجاء إدخال محيط صحيح بين 4 و 12 سم"></div>
+        </div>
+      </div>
+
+      <div id="sizeError" class="result error d-none mb-4">
+        <strong data-en="Error:" data-ar="خطأ:">Error:</strong> 
+        <span data-en="Size out of supported range (5.5 cm to 7.0 cm)." data-ar="المقاس خارج النطاق المدعوم (5.5 سم إلى 7.0 سم).">Size out of supported range (5.5 cm to 7.0 cm).</span>
+      </div>
+
+      <div class="steps-container">
+        <div class="step-number">3</div>
+        <label class="form-label" data-en="Select Ring Color:" data-ar="اختر لون الخاتم:">Select Ring Color:</label>
+        <div class="color-selector">
+          <div class="color-option selected" style="background-color: black;" data-color="Black" data-ar-color="أسود" onclick="selectColor(this)"></div>
+          <div class="color-option" style="background-color: silver;" data-color="Silver" data-ar-color="فضي" onclick="selectColor(this)"></div>
+          <div class="color-option" style="background-color: gold;" data-color="Gold" data-ar-color="ذهبي" onclick="selectColor(this)"></div>
+        </div>
+      </div>
+
+      <div class="ring-preview-container">
+        <img id="ringPreview" src="black.webp" alt="Ring Preview" class="ring-image">
+      </div>
+
+      <button class="btn btn-dark w-100 mb-3" onclick="calculateAndAddToBasket()" data-en="Calculate Size & Add to Basket" data-ar="حساب المقاس والإضافة إلى السلة">
+        <i class="fas fa-calculator me-2"></i>
+        Calculate Size & Add to Basket
+      </button>
+
+      <div class="size-result d-none" id="result"></div>
     </div>
 
-    <div class="mb-3">
-      <label class="form-label" data-en="Select Ring Color:" data-ar="اختر لون الخاتم:">Select Ring Color:</label>
-      <div class="color-selector">
-        <div class="color-option selected" style="background-color: black;" data-color="Black" data-ar-color="أسود" onclick="selectColor(this)"></div>
-        <div class="color-option" style="background-color: silver;" data-color="Silver" data-ar-color="فضي" onclick="selectColor(this)"></div>
-        <div class="color-option" style="background-color: gold;" data-color="Gold" data-ar-color="ذهبي" onclick="selectColor(this)"></div>
+    <!-- Order Section -->
+    <div class="section order-section">
+      <div class="basket-header">
+        <h2 data-en="Your Basket" data-ar="سلتك">Your Basket</h2>
+        <span class="basket-count">0</span>
       </div>
-      <input type="hidden" id="ringColor" value="Black">
-      <input type="hidden" id="ringColorAr" value="أسود">
+
+      <div id="basketPreview">
+        <div class="basket-empty">
+          <i class="fas fa-shopping-basket"></i>
+          <p data-en="Your basket is empty" data-ar="سلتك فارغة">Your basket is empty</p>
+        </div>
+        <div id="basketList" class="basket-items"></div>
+      </div>
+
+      <div class="order-form" id="orderForm">
+        <div class="order-form-header">
+          <h2 data-en="Complete Your Order" data-ar="أكمل طلبك">Complete Your Order</h2>
+          <p data-en="Fill in your details to proceed with the order" data-ar="املأ بياناتك للمتابعة مع الطلب">Fill in your details to proceed with the order</p>
+        </div>
+
+        <div class="mb-3">
+          <label for="userName" class="form-label" data-en="Your Name:" data-ar="الإسم:">Your Name:</label>
+          <input type="text" class="form-control" id="userName" placeholder="e.g., First and Last Name" data-ar-placeholder="مثال: الإسم الاول و إسم العائلة">
+          <div class="text-danger small" id="errorName"></div>
+        </div>
+        <div class="mb-3">
+          <label for="userPhone" class="form-label" data-en="Your Phone Number:" data-ar="رقم الهاتف:">Your Phone Number:</label>
+          <input type="tel" class="form-control" id="userPhone">
+          <div class="text-danger small" id="errorPhone"></div>
+        </div>
+        <div class="mb-3">
+          <label for="userCity" class="form-label" data-en="Your Address (Governorate / Area):" data-ar="العنوان (المحافظة / المنطقة):">Your Address (Governorate / Area):</label>
+          <input type="text" class="form-control" id="userCity" placeholder="e.g., Muscat / Bawshar" data-ar-placeholder="مثال: مسقط / بوشر">
+          <div class="text-danger small" id="errorCity"></div>
+        </div>
+        <div class="text-danger small" id="errorBasket"></div>
+        <button class="btn btn-whatsapp w-100" onclick="showConfirmModal()">
+          <i class="fab fa-whatsapp me-2"></i>
+          <span data-en="Send Order via WhatsApp" data-ar="إرسال الطلب عبر واتساب">Send Order via WhatsApp</span>
+        </button>
+      </div>
     </div>
 
-    <img id="ringPreview" src="black.webp" alt="Ring Preview" class="ring-image">
-
-    <button class="btn btn-dark w-100 mb-3" onclick="calculateSize()" data-en="Calculate Ring Size" data-ar="حساب مقاس الخاتم">Calculate Ring Size</button>
-
-    <div class="result d-none" id="result"></div>
-    <button id="addToBasketBtn" class="btn btn-secondary w-100 d-none" onclick="addToBasket()" data-en="Add This Ring to Basket" data-ar="أضف هذا الخاتم إلى السلة">Add This Ring to Basket</button>
-
-    <div class="mt-4" id="basketPreview" style="display: none;">
-      <h5 data-en="Basket:" data-ar="السلة:">Basket:</h5>
-      <ul id="basketList" class="list-group mb-3"></ul>
-    </div>
-
-    <div id="orderForm">
-      <div class="mb-3">
-        <label for="userName" class="form-label" data-en="Your Name:" data-ar="الإسم:">Your Name:</label>
-        <input type="text" class="form-control" id="userName" placeholder="e.g., First and Last Name" data-ar-placeholder="مثال: الإسم الاول و إسم العائلة">
-        <div class="text-danger small" id="errorName"></div>
-      </div>
-      <div class="mb-3">
-        <label for="userPhone" class="form-label" data-en="Your Phone Number:" data-ar="رقم الهاتف:">Your Phone Number:</label>
-        <input type="text" class="form-control" id="userPhone" placeholder="e.g., 91910350" data-ar-placeholder="مثال: 91910350">
-        <div class="text-danger small" id="errorPhone"></div>
-      </div>
-      <div class="mb-3">
-        <label for="userCity" class="form-label" data-en="Your Address (Governorate / Area):" data-ar="العنوان (المحافظة / المنطقة):">Your Address (Governorate / Area):</label>
-        <input type="text" class="form-control" id="userCity" placeholder="e.g., Muscat / Bawshar" data-ar-placeholder="مثال: مسقط / بوشر">
-        <div class="text-danger small" id="errorCity"></div>
-      </div>
-      <button class="btn btn-whatsapp w-100" onclick="showConfirmModal()" data-en="Send Order via WhatsApp" data-ar="إرسال الطلب عبر واتساب">Send Order via WhatsApp</button>
+    <div class="footer">
+      <p data-en="© 2025 EnerCore. All rights reserved." data-ar="© 2025 إنركور. جميع الحقوق محفوظة.">© 2025 EnerCore. All rights reserved.</p>
     </div>
   </div>
 
@@ -169,21 +817,92 @@
     </div>
   </div>
 
- 
-
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.19/js/intlTelInput.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.19/js/utils.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js"></script>
   <script>
     let basket = [];
     let currentRing = null;
-    let currentLanguage = 'en';
+    let currentLanguage = localStorage.getItem('language') || 'ar';
+    let iti;
+    let ringImages = {
+      black: 'black.webp',
+      silver: 'silver.webp',
+      gold: 'gold.webp'
+    };
+
+    // Preload images
+    document.addEventListener('DOMContentLoaded', () => {
+      // Initialize phone input
+      setLanguage(currentLanguage);
+      const phoneInput = document.getElementById('userPhone');
+      iti = window.intlTelInput(phoneInput, {
+        initialCountry: "om",
+        preferredCountries: ["om", "ae", "sa", "qa", "kw", "bh"],
+        separateDialCode: true,
+        utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.19/js/utils.js"
+      });
+
+      // Preload ring images
+      Object.values(ringImages).forEach(src => {
+        const img = new Image();
+        img.src = src;
+      });
+
+      // Set initial color selection
+      document.querySelector('.color-option[data-color="Black"]').classList.add('selected');
+      setRingColor('Black', 'أسود');
+      loadBasketFromStorage();
+
+      // Set initial language state to Arabic
+      setLanguage(currentLanguage);
+    });
 
     function toggleLanguage() {
       const newLanguage = currentLanguage === 'en' ? 'ar' : 'en';
       setLanguage(newLanguage);
+      localStorage.setItem('language', newLanguage);
+    }
+
+    function setRingColor(color, colorAr) {
+      const ringPreview = document.getElementById('ringPreview');
+      const imageSrc = ringImages[color.toLowerCase()];
+      
+      // Add loading class to preview container
+      const previewContainer = document.querySelector('.ring-preview-container');
+      previewContainer.classList.add('loading');
+      
+      // Create new image to ensure proper loading
+      const newImage = new Image();
+      newImage.onload = function() {
+        ringPreview.src = this.src;
+        previewContainer.classList.remove('loading');
+      };
+      newImage.src = imageSrc;
+      
+      // Update hidden inputs
+      document.getElementById('ringColor').value = color;
+      document.getElementById('ringColorAr').value = colorAr;
+    }
+
+    function selectColor(el) {
+      // Remove selected class from all options
+      document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
+      
+      // Add selected class to clicked option
+      el.classList.add('selected');
+      
+      // Update ring color
+      const color = el.getAttribute('data-color');
+      const colorAr = el.getAttribute('data-ar-color');
+      setRingColor(color, colorAr);
     }
 
     function setLanguage(lang) {
       currentLanguage = lang;
+      
+      // Toggle RTL for Arabic
       if (lang === 'ar') {
         document.body.classList.add('rtl');
         document.getElementById('languageToggle').innerText = 'English';
@@ -194,33 +913,497 @@
         document.getElementById('languageToggle').classList.remove('active');
       }
 
+      // Update all text elements with language attributes
       document.querySelectorAll('[data-' + lang + ']').forEach(el => {
         el.innerText = el.getAttribute('data-' + lang);
       });
 
+      // Update placeholders
       document.querySelectorAll('[data-ar-placeholder]').forEach(el => {
         if (lang === 'ar') {
           el.setAttribute('placeholder', el.getAttribute('data-ar-placeholder'));
         } else {
+          // Restore English placeholders
           if (el.id === 'circumference') el.setAttribute('placeholder', 'e.g. 6.2');
-          if (el.id === 'userName') el.setAttribute('placeholder', 'e.g., First and Last Name');
           if (el.id === 'userPhone') el.setAttribute('placeholder', 'e.g., 91234567');
           if (el.id === 'userCity') el.setAttribute('placeholder', 'e.g., Muscat / Bawshar');
         }
       });
 
+      // Update basket items
       updateBasket();
+
+      // Update current result if visible
       if (!document.getElementById('result').classList.contains('d-none')) {
         displayResults();
       }
     }
 
-    // ... other JS functions remain unchanged ...
+    function validateCircumference(input) {
+      const value = parseFloat(input.value);
+      const validFeedback = input.parentElement.nextElementSibling;
+      const invalidFeedback = validFeedback.nextElementSibling;
+      
+      // Clear previous validation state
+      input.classList.remove('is-valid', 'is-invalid');
+      validFeedback.style.display = 'none';
+      invalidFeedback.style.display = 'none';
+      
+      if (!value) {
+        input.classList.add('is-invalid');
+        invalidFeedback.style.display = 'block';
+        return false;
+      }
+      
+      if (value >= 4 && value <= 12) {
+        input.classList.add('is-valid');
+        validFeedback.style.display = 'block';
+        return true;
+      } else {
+        input.classList.add('is-invalid');
+        invalidFeedback.style.display = 'block';
+        return false;
+      }
+    }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      document.querySelector('.color-option[data-color="Black"]').classList.add('selected');
-      setLanguage('ar');
+    function showLoading() {
+      document.querySelector('.loading-overlay').style.display = 'flex';
+    }
+
+    function hideLoading() {
+      document.querySelector('.loading-overlay').style.display = 'none';
+    }
+
+    function addToBasket() {
+      if (!currentRing) {
+        console.error('No ring selected');
+        return;
+      }
+      const itemId = Date.now();
+      try {
+        basket.push({ id: itemId, ...currentRing });
+        updateBasket();
+        saveBasketToStorage();
+      } catch (error) {
+        console.error('Error adding to basket:', error);
+        alert(currentLanguage === 'en' ? 'Error adding item to basket' : 'خطأ في إضافة العنصر إلى السلة');
+      }
+    }
+
+    function updateBasket() {
+      try {
+        const list = document.getElementById('basketList');
+        const preview = document.getElementById('basketPreview');
+        const basketCount = document.querySelector('.basket-count');
+        const basketEmpty = preview.querySelector('.basket-empty');
+        
+        if (!list || !preview || !basketCount || !basketEmpty) {
+          console.error('Missing basket elements');
+          return;
+        }
+        
+        list.innerHTML = '';
+        basketCount.textContent = basket.length;
+        
+        if (!basket || basket.length === 0) {
+          preview.style.display = 'block';
+          list.style.display = 'none';
+          basketEmpty.style.display = 'block';
+          return;
+        }
+        
+        preview.style.display = 'block';
+        list.style.display = 'block';
+        basketEmpty.style.display = 'none';
+        
+        basket.forEach(item => {
+          if (!item || !item.size || !item.color || !item.circumference) {
+            console.error('Invalid basket item:', item);
+            return;
+          }
+          
+          const li = document.createElement('div');
+          li.className = 'basket-item';
+          
+          const content = currentLanguage === 'en'
+            ? `
+              <div class="basket-item-details">
+                <div class="basket-item-size">Size: ${item.size}</div>
+                <div class="basket-item-meta">
+                  Color: ${item.color}<br>
+                  Circumference: ${item.circumference} cm
+                </div>
+              </div>
+              <div class="basket-actions">
+                <button class="btn-remove" onclick="removeFromBasket(${item.id})">
+                  <i class="fas fa-trash-alt"></i>
+                  <span>Remove</span>
+                </button>
+              </div>
+            `
+            : `
+              <div class="basket-item-details">
+                <div class="basket-item-size">المقاس: ${item.size}</div>
+                <div class="basket-item-meta">
+                  اللون: ${item.colorAr}<br>
+                  المحيط: ${item.circumference} سم
+                </div>
+              </div>
+              <div class="basket-actions">
+                <button class="btn-remove" onclick="removeFromBasket(${item.id})">
+                  <i class="fas fa-trash-alt"></i>
+                  <span>إزالة</span>
+                </button>
+              </div>
+            `;
+          
+          li.innerHTML = content;
+          list.appendChild(li);
+        });
+      } catch (error) {
+        console.error('Error updating basket:', error);
+      }
+    }
+
+    function removeFromBasket(id) {
+      basket = basket.filter(item => item.id !== id);
+      updateBasket();
+      saveBasketToStorage();
+    }
+
+    function saveBasketToStorage() {
+      localStorage.setItem('enercore_basket', JSON.stringify(basket));
+    }
+
+    function loadBasketFromStorage() {
+      const saved = localStorage.getItem('enercore_basket');
+      if (saved) {
+        basket = JSON.parse(saved);
+        updateBasket();
+      }
+    }
+
+    async function calculateAndAddToBasket() {
+      showLoading();
+      try {
+        const circumferenceInput = document.getElementById('circumference');
+        const cm = parseFloat(circumferenceInput.value);
+        
+        // Validate input
+        if (!cm || cm <= 0) {
+          alert(currentLanguage === 'en' ? "Please enter a valid number." : "الرجاء إدخال رقم صحيح.");
+          return;
+        }
+
+        const mm = cm * 10;
+        const sizeTable = [
+          { size: "7", perimeter: 55 },
+          { size: "8", perimeter: 57.5 },
+          { size: "9", perimeter: 60 },
+          { size: "10", perimeter: 62.8 },
+          { size: "11", perimeter: 65.4 },
+          { size: "12", perimeter: 67.8 },
+          { size: "13", perimeter: 70.4 }
+        ];
+
+        const sizeError = document.getElementById('sizeError');
+        const resultDiv = document.getElementById('result');
+        
+        // Hide both error and result initially
+        sizeError.classList.add('d-none');
+        resultDiv.classList.remove('show');
+        resultDiv.classList.add('d-none');
+        
+        if (mm < sizeTable[0].perimeter || mm > sizeTable[sizeTable.length - 1].perimeter) {
+          sizeError.classList.remove('d-none');
+          return;
+        }
+
+        let size = "Unknown";
+        for (let i = 0; i < sizeTable.length; i++) {
+          if (mm <= sizeTable[i].perimeter) {
+            size = sizeTable[i].size;
+            break;
+          }
+        }
+
+        const selectedColor = document.querySelector('.color-option.selected');
+        if (!selectedColor) {
+          alert(currentLanguage === 'en' ? 'Please select a ring color.' : 'الرجاء اختيار لون الخاتم.');
+          return;
+        }
+
+        const color = selectedColor.getAttribute('data-color');
+        const colorAr = selectedColor.getAttribute('data-ar-color');
+        const diameter = (mm / Math.PI).toFixed(1);
+
+        currentRing = { 
+          size, 
+          color, 
+          colorAr,
+          circumference: cm,
+          diameter,
+          price: 15 
+        };
+
+        displayResults();
+        addToBasket();
+        
+        // Reset validation state after successful addition
+        circumferenceInput.classList.remove('is-valid');
+        circumferenceInput.value = '';
+      } catch (error) {
+        console.error('Error in calculateAndAddToBasket:', error);
+        alert(currentLanguage === 'en' ? 'An error occurred. Please try again.' : 'حدث خطأ. حاول مرة اخرى.');
+      } finally {
+        hideLoading();
+      }
+    }
+
+    function displayResults() {
+      if (!currentRing) return;
+      
+      const result = document.getElementById('result');
+      result.classList.remove('d-none');
+      
+      const content = currentLanguage === 'en'
+        ? `
+          <h3>Your Ring Size Results</h3>
+          <div class="size-details">
+            <div class="size-detail-item">
+              <strong>Ring Size</strong>
+              #${currentRing.size}
+            </div>
+            <div class="size-detail-item">
+              <strong>Inner Diameter</strong>
+              ${currentRing.diameter} mm
+            </div>
+            <div class="size-detail-item">
+              <strong>Color</strong>
+              ${currentRing.color}
+            </div>
+            <div class="size-detail-item">
+              <strong>Price</strong>
+              ${currentRing.price} OMR
+            </div>
+          </div>
+        `
+        : `
+          <h3>نتائج قياس خاتمك</h3>
+          <div class="size-details">
+            <div class="size-detail-item">
+              <strong>مقاس الخاتم</strong>
+              #${currentRing.size}
+            </div>
+            <div class="size-detail-item">
+              <strong>القطر الداخلي</strong>
+              ${currentRing.diameter} مم
+            </div>
+            <div class="size-detail-item">
+              <strong>اللون</strong>
+              ${currentRing.colorAr}
+            </div>
+            <div class="size-detail-item">
+              <strong>السعر</strong>
+              ${currentRing.price} ر.ع
+            </div>
+          </div>
+        `;
+      
+      result.innerHTML = content;
+      result.classList.add('show');
+    }
+
+    function validateForm() {
+      let isValid = true;
+      const errorName = document.getElementById('errorName');
+      const errorPhone = document.getElementById('errorPhone');
+      const errorCity = document.getElementById('errorCity');
+      const errorBasket = document.getElementById('errorBasket');
+      
+      // Reset error messages
+      errorName.innerText = '';
+      errorPhone.innerText = '';
+      errorCity.innerText = '';
+      errorBasket.innerText = '';
+      
+      // Validate name
+      const name = document.getElementById('userName').value.trim();
+      if (!name || name.length < 3) {
+        errorName.innerText = currentLanguage === 'en' ? 'Please enter your full name (minimum 3 characters).' : 'الرجاء إدخال اسمك الكامل (3 أحرف على الأقل).';
+        isValid = false;
+      }
+      
+      // Validate phone
+      if (!iti || !iti.isValidNumber()) {
+        errorPhone.innerText = currentLanguage === 'en' ? 'Please enter a valid phone number.' : 'الرجاء إدخال رقم هاتف صحيح.';
+        isValid = false;
+      }
+      
+      // Validate city/address
+      const city = document.getElementById('userCity').value.trim();
+      if (!city || city.length < 3) {
+        errorCity.innerText = currentLanguage === 'en' ? 'Please enter your complete address.' : 'الرجاء إدخال عنوانك الكامل.';
+        isValid = false;
+      }
+      
+      // Validate basket
+      if (!basket || basket.length === 0) {
+        errorBasket.innerText = currentLanguage === 'en' ? 'Please add at least one ring to your basket.' : 'الرجاء إضافة خاتم واحد على الأقل إلى السلة.';
+        isValid = false;
+      }
+      
+      return isValid;
+    }
+
+    function showConfirmModal() {
+      if (!validateForm()) return;
+      
+      const name = document.getElementById('userName').value.trim();
+      const phone = iti.getNumber();
+      const city = document.getElementById('userCity').value.trim();
+      
+      const modalElement = document.getElementById('confirmModal');
+      const orderSummary = document.getElementById('orderSummary');
+      
+      let summaryHTML = currentLanguage === 'en' 
+        ? `<div class="mb-3">
+            <p><strong>Name:</strong> ${name}</p>
+            <p><strong>Phone:</strong> ${phone}</p>
+            <p><strong>Address:</strong> ${city}</p>
+            <p><strong>Items:</strong></p>
+            <ul class="list-unstyled">
+              ${basket.map(item => `<li>Size: ${item.size}, Color: ${item.color}, Circumference: ${item.circumference}cm</li>`).join('')}
+            </ul>
+          </div>`
+        : `<div class="mb-3">
+            <p><strong>الاسم:</strong> ${name}</p>
+            <p><strong>الهاتف:</strong> ${phone}</p>
+            <p><strong>العنوان:</strong> ${city}</p>
+            <p><strong>العناصر:</strong></p>
+            <ul class="list-unstyled">
+              ${basket.map(item => `<li>المقاس: ${item.size}، اللون: ${item.colorAr}، المحيط: ${item.circumference} سم</li>`).join('')}
+            </ul>
+          </div>`;
+      
+      orderSummary.innerHTML = summaryHTML;
+      
+      const modal = new bootstrap.Modal(modalElement);
+      modal.show();
+    }
+
+    async function submitOrder() {
+      if (!validateForm()) return;
+      
+      showLoading();
+      try {
+        const name = document.getElementById('userName').value.trim();
+        const phone = iti.getNumber();
+        const city = document.getElementById('userCity').value.trim();
+        
+        if (!name || !phone || !city) {
+          throw new Error('Missing required fields');
+        }
+        
+        let message = '';
+        
+        if (currentLanguage === 'en') {
+          message += `*New Ring Order*\n\n`;
+          message += `Name: ${name}\n`;
+          message += `Phone: ${phone}\n`;
+          message += `Address: ${city}\n\n`;
+          message += `*Order Items:*\n`;
+          
+          basket.forEach((item, index) => {
+            message += `${index + 1}. Size: ${item.size}, Color: ${item.color}, Circumference: ${item.circumference}cm\n`;
+          });
+          
+        } else {
+          message += `*طلب خاتم جديد*\n\n`;
+          message += `الاسم: ${name}\n`;
+          message += `الهاتف: ${phone}\n`;
+          message += `العنوان: ${city}\n\n`;
+          message += `*عناصر الطلب:*\n`;
+          
+          basket.forEach((item, index) => {
+            message += `${index + 1}. المقاس: ${item.size}، اللون: ${item.colorAr}، المحيط: ${item.circumference} سم\n`;
+          });
+        }
+        
+        // Encode the message for WhatsApp URL
+        const encodedMessage = encodeURIComponent(message);
+        const businessPhone = '96896788650';
+        const whatsappURL = `https://wa.me/${businessPhone}?text=${encodedMessage}`;
+        
+        // Close the modal
+        const modalElement = document.getElementById('confirmModal');
+        const modal = bootstrap.Modal.getInstance(modalElement);
+        if (modal) {
+          modal.hide();
+        }
+        
+        // Clear the form and basket
+        basket = [];
+        saveBasketToStorage();
+        updateBasket();
+        
+        document.getElementById('userName').value = '';
+        document.getElementById('userCity').value = '';
+        document.getElementById('userPhone').value = '';
+        
+        // Open WhatsApp in a new tab
+        window.open(whatsappURL, '_blank');
+      } catch (error) {
+        console.error('Error submitting order:', error);
+        alert(currentLanguage === 'en' ? 'Error submitting order. Please try again.' : 'خطأ في تقديم الطلب. حاول مرة اخرى.');
+      } finally {
+        hideLoading();
+      }
+    }
+
+    // Add button ripple effect
+    document.addEventListener('click', function(e) {
+      if (e.target.classList.contains('btn')) {
+        const ripple = document.createElement('span');
+        ripple.classList.add('btn-ripple');
+        
+        const rect = e.target.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        ripple.style.left = x + 'px';
+        ripple.style.top = y + 'px';
+        
+        e.target.appendChild(ripple);
+        
+        ripple.addEventListener('animationend', () => {
+          ripple.remove();
+        });
+      }
     });
+
+    // Handle scroll behavior for language toggle
+    let lastScrollTop = 0;
+    const languageToggle = document.querySelector('.language-toggle');
+    const scrollThreshold = 50; // Minimum scroll amount before hiding
+
+    window.addEventListener('scroll', () => {
+      const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+      
+      if (Math.abs(currentScroll - lastScrollTop) < scrollThreshold) {
+        return; // Ignore small scroll amounts
+      }
+      
+      if (currentScroll > lastScrollTop && currentScroll > 100) {
+        // Scrolling down
+        languageToggle.classList.add('hidden');
+      } else {
+        // Scrolling up
+        languageToggle.classList.remove('hidden');
+      }
+      
+      lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
+    }, { passive: true });
   </script>
 </body>
 </html>
