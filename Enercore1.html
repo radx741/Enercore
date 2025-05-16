@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ring Size Calculator</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <style>
+    body {
+      background-color: #fff;
+      color: #000;
+      padding: 2rem;
+    }
+    .container {
+      max-width: 600px;
+    }
+    .ring-image {
+      display: block;
+      margin: 1rem auto;
+      max-width: 200px;
+    }
+    .color-selector {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .color-option {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 2px solid #000;
+      cursor: pointer;
+    }
+    .color-option.selected {
+      box-shadow: 0 0 0 3px #000;
+    }
+    .result {
+      margin-top: 1rem;
+      padding: 1rem;
+      background-color: #f0f0f0;
+      border-left: 5px solid green;
+    }
+    .btn-whatsapp {
+      background-color: #25D366;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 5px;
+      margin-top: 15px;
+      display: inline-block;
+      text-decoration: none;
+    }
+    .modal-content {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+    }
+    .language-toggle {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .language-btn {
+      padding: 8px 20px;
+      font-size: 16px;
+      font-weight: bold;
+      border: 2px solid #333;
+      background-color: #f8f9fa;
+      color: #333;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.3s;
+    }
+    .language-btn:hover {
+      background-color: #e9ecef;
+    }
+    .language-btn.active {
+      background-color: #333;
+      color: white;
+    }
+    /* RTL support for Arabic */
+    body.rtl {
+      direction: rtl;
+      text-align: right;
+    }
+    body.rtl .result {
+      border-left: none;
+      border-right: 5px solid green;
+    }
+  </style>
+</head>
+<body>
+  <div class="language-toggle">
+    <button class="language-btn" id="languageToggle" onclick="toggleLanguage()">العربية</button>
+  </div>
+
+  <div class="container">
+    <h1 class="text-center mb-4" data-en="Ring Size Calculator" data-ar="حاسب مقاس الخاتم">Ring Size Calculator</h1>
+    <h2 class="h5" data-en="Step-by-Step Instructions:" data-ar="تعليمات خطوة بخطوة:">Step-by-Step Instructions:</h2>
+    <ol>
+      <li data-en="Cut a thin strip of paper or use string." data-ar="قص شريطاً رفيعاً من الورق أو استخدم خيطاً.">Cut a thin strip of paper or use string.</li>
+      <li data-en="Wrap it around the base of your finger snugly (not too tight)." data-ar="لفه حول قاعدة إصبعك بإحكام (ليس بشكل مشدود جداً).">Wrap it around the base of your finger snugly (not too tight).</li>
+      <li data-en="Mark the point where the end meets the rest of the strip." data-ar="ضع علامة على النقطة حيث تلتقي النهاية مع باقي الشريط.">Mark the point where the end meets the rest of the strip.</li>
+      <li data-en="Lay it flat and measure the length in centimeters." data-ar="ضعه بشكل مسطح وقم بقياس الطول بالـ سنتيمتر.">Lay it flat and measure the length in <strong>centimeters</strong>.</li>
+      <li data-en="Enter the value below to calculate your ring size." data-ar="أدخل القيمة أدناه لحساب مقاس خاتمك.">Enter the value below to calculate your ring size.</li>
+    </ol>
+
+    <div class="mb-3">
+      <label for="circumference" class="form-label" data-en="Enter Finger Circumference (cm):" data-ar="أدخل محيط الإصبع (سم):">Enter Finger Circumference (cm):</label>
+      <input type="number" class="form-control" id="circumference" placeholder="e.g. 6.2" step="0.1" data-ar-placeholder="مثال: 6.2">
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label" data-en="Select Ring Color:" data-ar="اختر لون الخاتم:">Select Ring Color:</label>
+      <div class="color-selector">
+        <div class="color-option selected" style="background-color: black;" data-color="Black" data-ar-color="أسود" onclick="selectColor(this)"></div>
+        <div class="color-option" style="background-color: silver;" data-color="Silver" data-ar-color="فضي" onclick="selectColor(this)"></div>
+        <div class="color-option" style="background-color: gold;" data-color="Gold" data-ar-color="ذهبي" onclick="selectColor(this)"></div>
+      </div>
+      <input type="hidden" id="ringColor" value="Black">
+      <input type="hidden" id="ringColorAr" value="أسود">
+    </div>
+
+    <img id="ringPreview" src="black.webp" alt="Ring Preview" class="ring-image">
+
+    <button class="btn btn-dark w-100 mb-3" onclick="calculateSize()" data-en="Calculate Ring Size" data-ar="حساب مقاس الخاتم">Calculate Ring Size</button>
+
+    <div class="result d-none" id="result"></div>
+    <button id="addToBasketBtn" class="btn btn-secondary w-100 d-none" onclick="addToBasket()" data-en="Add This Ring to Basket" data-ar="أضف هذا الخاتم إلى السلة">Add This Ring to Basket</button>
+
+    <div class="mt-4" id="basketPreview" style="display: none;">
+      <h5 data-en="Basket:" data-ar="السلة:">Basket:</h5>
+      <ul id="basketList" class="list-group mb-3"></ul>
+    </div>
+
+    <div id="orderForm">
+      <div class="mb-3">
+        <label for="userName" class="form-label" data-en="Your Name:" data-ar="اسمك:">Your Name:</label>
+        <input type="text" class="form-control" id="userName" placeholder="e.g., First and Last Name" data-ar-placeholder="مثال: الاسم الأول والعائلة">
+        <div class="text-danger small" id="errorName"></div>
+      </div>
+      <div class="mb-3">
+        <label for="userPhone" class="form-label" data-en="Your Phone Number:" data-ar="رقم هاتفك:">Your Phone Number:</label>
+        <input type="text" class="form-control" id="userPhone" placeholder="e.g., 91234567" data-ar-placeholder="مثال: 91234567">
+        <div class="text-danger small" id="errorPhone"></div>
+      </div>
+      <div class="mb-3">
+        <label for="userCity" class="form-label" data-en="Your Address (Governorate / Area):" data-ar="عنوانك (المحافظة / المنطقة):">Your Address (Governorate / Area):</label>
+        <input type="text" class="form-control" id="userCity" placeholder="e.g., Muscat / Bawshar" data-ar-placeholder="مثال: مسقط / بوشر">
+        <div class="text-danger small" id="errorCity"></div>
+      </div>
+      <button class="btn btn-whatsapp w-100" onclick="showConfirmModal()" data-en="Send Order via WhatsApp" data-ar="إرسال الطلب عبر واتساب">Send Order via WhatsApp</button>
+    </div>
+  </div>
+
+  <div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <h5 class="modal-title" data-en="Confirm Your Order" data-ar="تأكيد طلبك">Confirm Your Order</h5>
+        <div class="modal-body" id="orderSummary"></div>
+        <div class="d-flex justify-content-end mt-3">
+          <button class="btn btn-secondary me-2" data-bs-dismiss="modal" data-en="Cancel" data-ar="إلغاء">Cancel</button>
+          <button class="btn btn-success" onclick="submitOrder()" data-en="Confirm & Send" data-ar="تأكيد وإرسال">Confirm & Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    let basket = [];
+    let currentRing = null;
+    let currentLanguage = 'en';
+
+    function toggleLanguage() {
+      const newLanguage = currentLanguage === 'en' ? 'ar' : 'en';
+      setLanguage(newLanguage);
+    }
+
+    function setLanguage(lang) {
+      currentLanguage = lang;
+      
+      // Toggle RTL for Arabic
+      if (lang === 'ar') {
+        document.body.classList.add('rtl');
+        document.getElementById('languageToggle').innerText = 'English';
+        document.getElementById('languageToggle').classList.add('active');
+      } else {
+        document.body.classList.remove('rtl');
+        document.getElementById('languageToggle').innerText = 'العربية';
+        document.getElementById('languageToggle').classList.remove('active');
+      }
+
+      // Update all text elements with language attributes
+      document.querySelectorAll('[data-' + lang + ']').forEach(el => {
+        el.innerText = el.getAttribute('data-' + lang);
+      });
+
+      // Update placeholders
+      document.querySelectorAll('[data-ar-placeholder]').forEach(el => {
+        if (lang === 'ar') {
+          el.setAttribute('placeholder', el.getAttribute('data-ar-placeholder'));
+        } else {
+          // Restore English placeholders
+          if (el.id === 'circumference') el.setAttribute('placeholder', 'e.g. 6.2');
+          if (el.id === 'userName') el.setAttribute('placeholder', 'e.g., First and Last Name');
+          if (el.id === 'userPhone') el.setAttribute('placeholder', 'e.g., 91234567');
+          if (el.id === 'userCity') el.setAttribute('placeholder', 'e.g., Muscat / Bawshar');
+        }
+      });
+
+      // Update basket items
+      updateBasket();
+
+      // Update current result if visible
+      if (!document.getElementById('result').classList.contains('d-none')) {
+        displayResults();
+      }
+    }
+
+    function selectColor(element) {
+      document.querySelectorAll('.color-option').forEach(el => el.classList.remove('selected'));
+      element.classList.add('selected');
+      const color = element.getAttribute('data-color');
+      const colorAr = element.getAttribute('data-ar-color');
+      document.getElementById('ringColor').value = color;
+      document.getElementById('ringColorAr').value = colorAr;
+      document.getElementById('ringPreview').src = color.toLowerCase() + '.webp';
+    }
+
+    function calculateSize() {
+      const cm = parseFloat(document.getElementById('circumference').value);
+      const color = document.getElementById('ringColor').value;
+      const colorAr = document.getElementById('ringColorAr').value;
+      const resultDiv = document.getElementById('result');
+
+      if (!cm || cm <= 0) {
+        alert(currentLanguage === 'en' ? "Please enter a valid number." : "الرجاء إدخال رقم صحيح.");
+        return;
+      }
+
+      const mm = cm * 10;
+      const sizeTable = [
+        { size: "7", perimeter: 55 },
+        { size: "8", perimeter: 57.5 },
+        { size: "9", perimeter: 60 },
+        { size: "10", perimeter: 62.8 },
+        { size: "11", perimeter: 65.4 },
+        { size: "12", perimeter: 67.8 },
+        { size: "13", perimeter: 70.4 }
+      ];
+
+      if (mm < sizeTable[0].perimeter || mm > sizeTable[sizeTable.length - 1].perimeter) {
+        resultDiv.className = 'result error';
+        resultDiv.classList.remove('d-none');
+        resultDiv.innerHTML = currentLanguage === 'en' 
+          ? `<strong>Error:</strong> Size out of supported range (5.5 cm to 7.0 cm).`
+          : `<strong>خطأ:</strong> المقاس خارج النطاق المدعوم (5.5 سم إلى 7.0 سم).`;
+        return;
+      }
+
+      let size = "Unknown";
+      for (let i = 0; i < sizeTable.length; i++) {
+        if (mm <= sizeTable[i].perimeter) {
+          size = sizeTable[i].size;
+          break;
+        }
+      }
+
+      const diameter = (mm / Math.PI).toFixed(1);
+      currentRing = { 
+        size, 
+        color, 
+        colorAr,
+        price: 15 
+      };
+
+      displayResults();
+    }
+
+    function displayResults() {
+      if (!currentRing) return;
+      
+      const resultDiv = document.getElementById('result');
+      resultDiv.className = 'result';
+      resultDiv.classList.remove('d-none');
+      
+      const diameter = (parseFloat(document.getElementById('circumference').value) * 10 / Math.PI).toFixed(1);
+      
+      if (currentLanguage === 'en') {
+        resultDiv.innerHTML = `Inner Diameter: ${diameter} mm<br>Size: #${currentRing.size}<br>Color: ${currentRing.color}<br>Price: 15 OMR`;
+      } else {
+        resultDiv.innerHTML = `القطر الداخلي: ${diameter} مم<br>المقاس: #${currentRing.size}<br>اللون: ${currentRing.colorAr}<br>السعر: 15 ر.ع`;
+      }
+
+      document.getElementById('addToBasketBtn').classList.remove('d-none');
+    }
+
+    function addToBasket() {
+      if (!currentRing) return;
+      basket.push(currentRing);
+      currentRing = null;
+      document.getElementById('result').classList.add('d-none');
+      document.getElementById('addToBasketBtn').classList.add('d-none');
+      updateBasket();
+    }
+
+    function updateBasket() {
+      const basketList = document.getElementById('basketList');
+      basketList.innerHTML = '';
+      
+      basket.forEach((item, index) => {
+        const li = document.createElement('li');
+        li.className = 'list-group-item d-flex justify-content-between align-items-center';
+        
+        if (currentLanguage === 'en') {
+          li.innerHTML = `#${index + 1}: Size ${item.size}, Color: ${item.color}, Price: 15 OMR 
+            <button class="btn btn-sm btn-danger" onclick="removeFromBasket(${index})">Remove</button>`;
+        } else {
+          li.innerHTML = `#${index + 1}: المقاس ${item.size}، اللون: ${item.colorAr}، السعر: 15 ر.ع 
+            <button class="btn btn-sm btn-danger" onclick="removeFromBasket(${index})">إزالة</button>`;
+        }
+        
+        basketList.appendChild(li);
+      });
+      
+      document.getElementById('basketPreview').style.display = basket.length > 0 ? 'block' : 'none';
+    }
+
+    function removeFromBasket(index) {
+      basket.splice(index, 1);
+      updateBasket();
+    }
+
+    function showConfirmModal() {
+      const name = document.getElementById('userName').value.trim();
+      const phone = document.getElementById('userPhone').value.trim();
+      const city = document.getElementById('userCity').value.trim();
+      const errorName = document.getElementById('errorName');
+      const errorPhone = document.getElementById('errorPhone');
+      const errorCity = document.getElementById('errorCity');
+
+      errorName.textContent = '';
+      errorPhone.textContent = '';
+      errorCity.textContent = '';
+
+      if (!name) {
+        errorName.textContent = currentLanguage === 'en' ? 'Name is required.' : 'الاسم مطلوب.';
+      }
+      if (!phone) {
+        errorPhone.textContent = currentLanguage === 'en' ? 'Phone is required.' : 'رقم الهاتف مطلوب.';
+      }
+      if (!city) {
+        errorCity.textContent = currentLanguage === 'en' ? 'Address is required.' : 'العنوان مطلوب.';
+      }
+      if (!name || !phone || !city) return;
+
+      if (basket.length === 0) {
+        alert(currentLanguage === 'en' 
+          ? 'Please add at least one ring to the basket.' 
+          : 'الرجاء إضافة خاتم واحد على الأقل إلى السلة.');
+        return;
+      }
+
+      let summary = '';
+      
+      if (currentLanguage === 'en') {
+        summary = `<ul>`;
+        basket.forEach((item, index) => {
+          summary += `<li>Ring ${index + 1}: Size ${item.size}, Color: ${item.color}, Price: 15 OMR</li>`;
+        });
+        summary += `</ul>`;
+        summary += `<strong>Name:</strong> ${name}<br><strong>Phone:</strong> ${phone}<br><strong>Address:</strong> ${city}<br><strong>Total:</strong> ${(basket.length * 15).toFixed(2)} OMR`;
+      } else {
+        summary = `<ul>`;
+        basket.forEach((item, index) => {
+          summary += `<li>الخاتم ${index + 1}: المقاس ${item.size}، اللون: ${item.colorAr}، السعر: 15 ر.ع</li>`;
+        });
+        summary += `</ul>`;
+        summary += `<strong>الاسم:</strong> ${name}<br><strong>الهاتف:</strong> ${phone}<br><strong>العنوان:</strong> ${city}<br><strong>المجموع:</strong> ${(basket.length * 15).toFixed(2)} ر.ع`;
+      }
+
+      document.getElementById('orderSummary').innerHTML = summary;
+      new bootstrap.Modal(document.getElementById('confirmModal')).show();
+    }
+
+    function submitOrder() {
+      const name = document.getElementById('userName').value.trim();
+      const phone = document.getElementById('userPhone').value.trim();
+      const city = document.getElementById('userCity').value.trim();
+      let message;
+      
+      if (currentLanguage === 'en') {
+        message = `Hello, I would like to order the R12 Ring(s):\n\n`;
+        basket.forEach((item, index) => {
+          message += `${index + 1}. Size: ${item.size}, Color: ${item.color}, Price: 15 OMR\n`;
+        });
+        message += `\nName: ${name}\nPhone: ${phone}\nAddress: ${city}\n\nTotal Price: ${(basket.length * 15).toFixed(2)} OMR`;
+      } else {
+        message = `مرحباً، أود طلب خاتم R12:\n\n`;
+        basket.forEach((item, index) => {
+          message += `${index + 1}. المقاس: ${item.size}، اللون: ${item.colorAr}، السعر: 15 ر.ع\n`;
+        });
+        message += `\nالاسم: ${name}\nالهاتف: ${phone}\nالعنوان: ${city}\n\nالسعر الإجمالي: ${(basket.length * 15).toFixed(2)} ر.ع`;
+      }
+      
+      const url = `https://api.whatsapp.com/send?phone=96896788650&text=${encodeURIComponent(message)}`;
+      window.open(url, '_blank');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelector('.color-option[data-color="Black"]').classList.add('selected');
+    });
+  </script>
+</body>
+</html>
