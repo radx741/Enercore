@@ -29,7 +29,7 @@
     :root {
       --primary-color: #333;
       --secondary-color: #666;
-      --accent-color: #007bff;
+      --accent-color: #333;
       --success-color: #198754;
       --danger-color: #dc3545;
       --background-light: #fff;
@@ -336,7 +336,7 @@
       margin-bottom: 1rem;
       background-color: #fff;
       border-radius: 8px;
-      border-left: 4px solid #007bff;
+      border-left: 4px solid #333;
       box-shadow: 0 2px 5px rgba(0,0,0,0.05);
       transition: all 0.3s ease;
     }
@@ -422,16 +422,32 @@
       direction: rtl;
       text-align: right;
     }
+    /* LTR support for English */
+    body:not(.rtl) {
+      direction: ltr;
+      text-align: left;
+    }
     body.rtl .result {
       border-left: none;
       border-right: 5px solid green;
     }
+    body:not(.rtl) .result {
+      border-right: none;
+      border-left: 5px solid green;
+    }
     body.rtl .basket-item {
       border-left: none;
-      border-right: 4px solid #007bff;
+      border-right: 4px solid #333;
+    }
+    body:not(.rtl) .basket-item {
+      border-right: none;
+      border-left: 4px solid #333;
     }
     body.rtl .basket-item:hover {
       transform: translateX(-5px);
+    }
+    body:not(.rtl) .basket-item:hover {
+      transform: translateX(5px);
     }
     /* Custom style for intl-tel-input */
     .iti {
@@ -535,7 +551,7 @@
       color: var(--primary-color);
     }
     .basket-count {
-      background: var(--accent-color);
+      background: #333;
       color: white;
       padding: 0.3rem 0.8rem;
       border-radius: 20px;
@@ -572,7 +588,7 @@
       margin-bottom: 1rem;
       background: var(--background-gray);
       border-radius: 8px;
-      border-left: 4px solid var(--accent-color);
+      border-left: 4px solid #333;
       transition: all 0.3s ease;
       animation: slideIn 0.3s ease;
     }
@@ -714,11 +730,12 @@
               type="number" 
               class="form-control" 
               id="circumference" 
-              placeholder="e.g. 6.2" 
+              data-en-placeholder="e.g. 6.2"
+              data-ar-placeholder="مثال: ٦.٢"
+              placeholder="e.g. 6.2"
               step="0.1" 
               min="4"
               max="12"
-              data-ar-placeholder="مثال: 6.2"
               oninput="validateCircumference(this)"
             >
             <span class="input-group-text">cm</span>
@@ -778,17 +795,25 @@
 
         <div class="mb-3">
           <label for="userName" class="form-label" data-en="Your Name:" data-ar="الإسم:">Your Name:</label>
-          <input type="text" class="form-control" id="userName" placeholder="e.g., First and Last Name" data-ar-placeholder="مثال: الإسم الاول و إسم العائلة">
+          <input type="text" class="form-control" id="userName" 
+            data-en-placeholder="e.g., First and Last Name" 
+            data-ar-placeholder="مثال: الإسم الاول و إسم العائلة"
+            placeholder="e.g., First and Last Name">
           <div class="text-danger small" id="errorName"></div>
         </div>
         <div class="mb-3">
           <label for="userPhone" class="form-label" data-en="Your Phone Number:" data-ar="رقم الهاتف:">Your Phone Number:</label>
-          <input type="tel" class="form-control" id="userPhone">
+          <input type="tel" class="form-control" id="userPhone"
+            data-en-placeholder="e.g., 91234567"
+            data-ar-placeholder="مثال: ٩١٢٣٤٥٦٧">
           <div class="text-danger small" id="errorPhone"></div>
         </div>
         <div class="mb-3">
           <label for="userCity" class="form-label" data-en="Your Address (Governorate / Area):" data-ar="العنوان (المحافظة / المنطقة):">Your Address (Governorate / Area):</label>
-          <input type="text" class="form-control" id="userCity" placeholder="e.g., Muscat / Bawshar" data-ar-placeholder="مثال: مسقط / بوشر">
+          <input type="text" class="form-control" id="userCity" 
+            data-en-placeholder="e.g., Muscat / Bawshar" 
+            data-ar-placeholder="مثال: مسقط / بوشر"
+            placeholder="e.g., Muscat / Bawshar">
           <div class="text-danger small" id="errorCity"></div>
         </div>
         <div class="text-danger small" id="errorBasket"></div>
@@ -902,13 +927,17 @@
     function setLanguage(lang) {
       currentLanguage = lang;
       
-      // Toggle RTL for Arabic
+      // Toggle RTL for Arabic and update document direction
       if (lang === 'ar') {
         document.body.classList.add('rtl');
+        document.documentElement.dir = 'rtl';
+        document.documentElement.lang = 'ar';
         document.getElementById('languageToggle').innerText = 'English';
         document.getElementById('languageToggle').classList.add('active');
       } else {
         document.body.classList.remove('rtl');
+        document.documentElement.dir = 'ltr';
+        document.documentElement.lang = 'en';
         document.getElementById('languageToggle').innerText = 'العربية';
         document.getElementById('languageToggle').classList.remove('active');
       }
@@ -918,16 +947,9 @@
         el.innerText = el.getAttribute('data-' + lang);
       });
 
-      // Update placeholders
-      document.querySelectorAll('[data-ar-placeholder]').forEach(el => {
-        if (lang === 'ar') {
-          el.setAttribute('placeholder', el.getAttribute('data-ar-placeholder'));
-        } else {
-          // Restore English placeholders
-          if (el.id === 'circumference') el.setAttribute('placeholder', 'e.g. 6.2');
-          if (el.id === 'userPhone') el.setAttribute('placeholder', 'e.g., 91234567');
-          if (el.id === 'userCity') el.setAttribute('placeholder', 'e.g., Muscat / Bawshar');
-        }
+      // Update placeholders for all inputs with language-specific placeholders
+      document.querySelectorAll('input[data-' + lang + '-placeholder]').forEach(el => {
+        el.setAttribute('placeholder', el.getAttribute('data-' + lang + '-placeholder'));
       });
 
       // Update basket items
@@ -1308,7 +1330,7 @@
         let message = '';
         
         if (currentLanguage === 'en') {
-          message += `*New Ring Order*\n\n`;
+          message += `*Ring Order*\n\n`;
           message += `Name: ${name}\n`;
           message += `Phone: ${phone}\n`;
           message += `Address: ${city}\n\n`;
@@ -1319,7 +1341,7 @@
           });
           
         } else {
-          message += `*طلب خاتم جديد*\n\n`;
+          message += `*طلب خاتم *\n\n`;
           message += `الاسم: ${name}\n`;
           message += `الهاتف: ${phone}\n`;
           message += `العنوان: ${city}\n\n`;
